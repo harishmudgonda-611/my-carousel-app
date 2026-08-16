@@ -1,73 +1,70 @@
-'use client';
-import React, { useState } from 'react';
+"use client";
+import { useState } from "react";
 
 export default function Home() {
-  const [productName, setProductName] = useState('');
-  const [price, setPrice] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [generatedSlides, setGeneratedSlides] = useState([]);
-
-  const handleGenerate = () => {
-    if (!productName || !price || !imageUrl) {
-      alert('Kripya saari details bharein!');
-      return;
-    }
-    
-    const slides = [
-      { id: 1, title: productName, subtitle: `Only ₹${price}`, img: imageUrl, type: 'Front View' },
-      { id: 2, title: 'Premium Quality', subtitle: 'Comfortable & Stylish', img: imageUrl, type: 'Detail View' },
-      { id: 3, title: 'Limited Stock', subtitle: 'Order Now via Link', img: imageUrl, type: 'CTA' }
-    ];
-    
-    setGeneratedSlides(slides);
-  };
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [generated, setGenerated] = useState(false);
 
   return (
-    <main className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-md my-8">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Affiliate Carousel Builder</h1>
+    <main className="min-h-screen bg-gray-100 p-4 max-w-md mx-auto">
+      <div className="bg-white p-6 rounded-xl shadow-md space-y-4">
+        <h1 className="text-2xl font-bold text-gray-800 text-center">Affiliate Carousel Builder</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <input
-            type="text"
-            placeholder="Product Title"
-            className="border p-2 rounded"
-            value={productName}
-            onChange={(e) => setProductName(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Price (e.g. 499)"
-            className="border p-2 rounded"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Product Image URL"
-            className="border p-2 rounded"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="Product Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full p-2 border rounded-md text-gray-900 placeholder-gray-500"
+        />
+        
+        <input
+          type="text"
+          placeholder="Price (e.g. 499)"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          className="w-full p-2 border rounded-md text-gray-900 placeholder-gray-500"
+        />
+        
+        <input
+          type="text"
+          placeholder="Product Image URL (.jpg/.png link)"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          className="w-full p-2 border rounded-md text-gray-900 placeholder-gray-500"
+        />
 
         <button
-          onClick={handleGenerate}
-          className="bg-blue-600 text-white px-6 py-2 rounded mb-6"
+          onClick={() => setGenerated(true)}
+          className="w-full bg-blue-600 text-white py-2 rounded-md font-semibold hover:bg-blue-700"
         >
           Generate Carousel
         </button>
 
-        {generatedSlides.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {generatedSlides.map((slide) => (
-              <div key={slide.id} className="border rounded-lg p-4 bg-gray-50 text-center">
-                <span className="text-xs bg-gray-200 px-2 py-1 rounded">{slide.type}</span>
-                <img src={slide.img} alt={slide.title} className="w-full h-48 object-cover my-2 rounded" />
-                <h3 className="font-semibold">{slide.title}</h3>
-                <p className="text-gray-600">{slide.subtitle}</p>
-              </div>
-            ))}
+        {generated && (
+          <div className="mt-6 space-y-6">
+            <div className="border rounded-lg p-4 bg-gray-50 text-center relative">
+              <span className="text-xs bg-gray-200 px-2 py-1 rounded absolute top-2 right-2 text-gray-700">Front View</span>
+              {imageUrl && <img src={imageUrl} alt="Product" className="w-full h-64 object-cover rounded-md mb-2" />}
+              <h2 className="font-bold text-gray-900">{title || "Product Title"}</h2>
+              <p className="text-gray-600">Only ₹{price || "0"}</p>
+            </div>
+
+            <div className="border rounded-lg p-4 bg-gray-50 text-center relative">
+              <span className="text-xs bg-gray-200 px-2 py-1 rounded absolute top-2 right-2 text-gray-700">Detail View</span>
+              {imageUrl && <img src={imageUrl} alt="Product" className="w-full h-64 object-cover rounded-md mb-2" />}
+              <h2 className="font-bold text-gray-900">Premium Quality</h2>
+              <p className="text-gray-600">Comfortable & Stylish</p>
+            </div>
+
+            <div className="border rounded-lg p-4 bg-gray-50 text-center relative">
+              <span className="text-xs bg-gray-200 px-2 py-1 rounded absolute top-2 right-2 text-gray-700">CTA</span>
+              {imageUrl && <img src={imageUrl} alt="Product" className="w-full h-64 object-cover rounded-md mb-2" />}
+              <h2 className="font-bold text-gray-900">Limited Stock</h2>
+              <p className="text-gray-600">Order Now via Link</p>
+            </div>
           </div>
         )}
       </div>
