@@ -1,113 +1,170 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { toPng } from "html-to-image";
 
 export default function Home() {
-  const [meeshoUrl, setMeeshoUrl] = useState("");
-  const [title, setTitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [generated, setGenerated] = useState(false);
+  const [title, setTitle] = useState("Georgette Embroidery Kurti");
+  const [price, setPrice] = useState("466");
+  const [garmentImage, setGarmentImage] = useState(null);
 
-  const handleAutoFetch = async () => {
-    if (!meeshoUrl) return alert("Pehle Meesho link paste karein!");
-    setLoading(true);
+  // Models with preset poses
+  const models = [
+    { id: 1, name: "Pose 1 (Outdoor)", url: "https://i.ibb.co/6P0x9Mv/model1.jpg" },
+    { id: 2, name: "Pose 2 (Indoor)", url: "https://i.ibb.co/mFHn0Xy/model2.jpg" }
+  ];
+  const [selectedModel, setSelectedModel] = useState(models[0].url);
+
+  // Overlay Adjustments
+  const [top, setTop] = useState(30);
+  const [scale, setScale] = useState(100);
+
+  const cardRef = useRef(null);
+
+  const handleGarmentUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) setGarmentImage(URL.createObjectURL(file));
+  };
+
+  const downloadCarouselCard = async () => {
+    if (!cardRef.current) return;
     try {
-      const res = await fetch("/api/scrape", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: meeshoUrl }),
-      });
-      const data = await res.json();
-
-      if (data.image) setImageUrl(data.image);
-      if (data.title) setTitle(data.title.split("|")[0].trim());
-      
-      const priceMatch = meeshoUrl.match(/₹\s*(\d+)/) || data.title?.match(/₹\s*(\d+)/);
-      if (priceMatch) setPrice(priceMatch[1]);
-
-      setGenerated(true);
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true });
+      const link = document.createElement("a");
+      link.download = "carousel-post.png";
+      link.href = dataUrl;
+      link.click();
     } catch (err) {
-      alert("Error fetching details. Manually details fill karein.");
-    } finally {
-      setLoading(false);
+      alert("Download error, try again.");
     }
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 p-4 max-w-md mx-auto">
-      <div className="bg-white p-6 rounded-xl shadow-md space-y-4">
-        <h1 className="text-2xl font-bold text-gray-800 text-center">Affiliate Carousel Builder</h1>
-        
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-gray-700">Meesho Share Link Paste Karein:</label>
-          <input
-            type="text"
-            placeholder="Paste full Meesho link/text here..."
-            value={meeshoUrl}
-            onChange={(e) => setMeeshoUrl(e.target.value)}
-            className="w-full p-2 border rounded-md text-gray-900 border-blue-400"
-          />
-          <button
-            onClick={handleAutoFetch}
-            disabled={loading}
-            className="w-full bg-green-600 text-white py-2 rounded-md font-semibold hover:bg-green-700"
-          >
-            {loading ? "Fetching Real Image..." : "Auto-Fetch & Generate"}
-          </button>
-        </div>
+    <main className="min-h-screen bg-gray-100 p-4 max-w-md mx-auto font-sans">
+      <div className="bg-white p-5 rounded-2xl shadow-lg space-y-4">
+        <h1 className="text-xl font-bold text-gray-900 text-center">
+          100% Free AI Model Carousel
+        </h1>
 
-        <hr className="my-4" />
-
-        <div className="space-y-3">
-          <p className="text-xs text-gray-500 font-bold">MANUAL EDIT (IF NEEDED):</p>
+        {/* Dress Image Upload */}
+        <div className="border-2 border-dashed border-purple-400 p-3 rounded-xl text-center bg-purple-50">
+          <label className="block text-xs font-bold text-purple-900 mb-1 cursor-pointer">
+            📸 Meesho Dress Photo Upload Karein:
+          </label>
           <input
-            type="text"
-            placeholder="Product Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 border rounded-md text-gray-900"
-          />
-          <input
-            type="text"
-            placeholder="Price"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="w-full p-2 border rounded-md text-gray-900"
-          />
-          <input
-            type="text"
-            placeholder="Image URL"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="w-full p-2 border rounded-md text-gray-900"
+            type="file"
+            accept="image/*"
+            onChange={handleGarmentUpload}
+            className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-purple-600 file:text-white"
           />
         </div>
 
-        {generated && (
-          <div className="mt-6 space-y-6">
-            <div className="border rounded-lg p-4 bg-gray-50 text-center relative">
-              <span className="text-xs bg-gray-200 px-2 py-1 rounded absolute top-2 right-2 text-gray-700">Front View</span>
-              {imageUrl && <img src={imageUrl} alt="Product" className="w-full h-64 object-cover rounded-md mb-2" />}
-              <h2 className="font-bold text-gray-900">{title || "Product Title"}</h2>
-              <p className="text-gray-600">Only ₹{price || "0"}</p>
-            </div>
+        {/* Model Pose Selector */}
+        <div className="space-y-1">
+          <label className="text-xs font-bold text-gray-700">Choose AI Model Pose:</label>
+          <div className="grid grid-cols-2 gap-2">
+            {models.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setSelectedModel(m.url)}
+                className={`py-1.5 px-2 rounded-lg text-xs font-bold border ${
+                  selectedModel === m.url
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-gray-50 text-gray-700"
+                }`}
+              >
+                {m.name}
+              </button>
+            ))}
+          </div>
+        </div>
 
-            <div className="border rounded-lg p-4 bg-gray-50 text-center relative">
-              <span className="text-xs bg-gray-200 px-2 py-1 rounded absolute top-2 right-2 text-gray-700">Detail View</span>
-              {imageUrl && <img src={imageUrl} alt="Product" className="w-full h-64 object-cover rounded-md mb-2" />}
-              <h2 className="font-bold text-gray-900">Premium Quality</h2>
-              <p className="text-gray-600">Comfortable & Stylish</p>
+        {/* Manual Adjust Controls */}
+        {garmentImage && (
+          <div className="p-3 bg-gray-50 rounded-xl space-y-2 border">
+            <p className="text-[11px] font-bold text-gray-600 uppercase">Dress Fitting Adjusters:</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs">Position:</span>
+              <input
+                type="range"
+                min="10"
+                max="60"
+                value={top}
+                onChange={(e) => setTop(e.target.value)}
+                className="w-full"
+              />
             </div>
-
-            <div className="border rounded-lg p-4 bg-gray-50 text-center relative">
-              <span className="text-xs bg-gray-200 px-2 py-1 rounded absolute top-2 right-2 text-gray-700">CTA</span>
-              {imageUrl && <img src={imageUrl} alt="Product" className="w-full h-64 object-cover rounded-md mb-2" />}
-              <h2 className="font-bold text-gray-900">Limited Stock</h2>
-              <p className="text-gray-600">Order Now via Link</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs">Size:</span>
+              <input
+                type="range"
+                min="50"
+                max="150"
+                value={scale}
+                onChange={(e) => setScale(e.target.value)}
+                className="w-full"
+              />
             </div>
           </div>
         )}
+
+        {/* Text Inputs */}
+        <div className="space-y-2">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Product Title"
+            className="w-full p-2 border rounded-lg text-sm text-gray-900"
+          />
+          <input
+            type="text"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="Price"
+            className="w-full p-2 border rounded-lg text-sm text-gray-900"
+          />
+        </div>
+
+        {/* Canvas Render Area */}
+        <div ref={cardRef} className="border rounded-2xl p-4 bg-white text-center shadow-md relative overflow-hidden">
+          <span className="text-[10px] font-extrabold bg-purple-600 text-white px-2 py-0.5 rounded-full absolute top-3 right-3 z-10">
+            OFFICIAL POST
+          </span>
+
+          {/* Model & Dress Composite Box */}
+          <div className="relative w-full h-80 my-2 rounded-xl overflow-hidden bg-gray-200">
+            {/* AI Model Background */}
+            <img src={selectedModel} alt="AI Model" className="w-full h-full object-cover" />
+
+            {/* Overlay Garment */}
+            {garmentImage && (
+              <img
+                src={garmentImage}
+                alt="Dress"
+                style={{
+                  position: "absolute",
+                  top: `${top}%`,
+                  left: "50%",
+                  transform: `translateX(-50%) scale(${scale / 100})`,
+                  mixBlendMode: "multiply", // Blends dress with model lighting natively
+                  maxHeight: "60%",
+                  objectFit: "contain",
+                }}
+              />
+            )}
+          </div>
+
+          <h2 className="font-bold text-gray-900 text-sm">{title}</h2>
+          <p className="text-purple-700 font-extrabold text-sm">Only ₹{price}</p>
+        </div>
+
+        {/* Export Button */}
+        <button
+          onClick={downloadCarouselCard}
+          className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow hover:bg-emerald-700 transition"
+        >
+          📥 Download High Quality Post
+        </button>
       </div>
     </main>
   );
